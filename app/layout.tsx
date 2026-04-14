@@ -25,6 +25,8 @@ const bricolage = Bricolage_Grotesque({
   weight: ["300", "400", "500", "600", "700", "800"],
 });
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "FlashGenius - AI-Powered Flashcards",
   description:

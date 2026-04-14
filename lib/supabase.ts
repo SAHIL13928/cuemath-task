@@ -1,17 +1,23 @@
-import { createBrowserClient as _createBrowserClient, createServerClient as _createServerClient } from "@supabase/ssr";
+import {
+  createBrowserClient as _createBrowserClient,
+  createServerClient as _createServerClient,
+} from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+
+if (typeof window === "undefined" && (!supabaseUrl || !supabaseAnonKey)) {
+  console.error(
+    "[supabase] Missing env vars: NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY"
+  );
+}
 
 /**
  * Browser client — use in "use client" components.
  */
 export function createBrowserClient() {
-  return _createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
-  );
+  return _createBrowserClient(supabaseUrl, supabaseAnonKey);
 }
 
 /**
@@ -41,15 +47,12 @@ export function createServerComponentClient(cookieStore: {
 }
 
 /**
- * Basic service client (no user auth context) — for simple server operations.
+ * Basic service client (no user auth context).
  */
 let _supabase: ReturnType<typeof createClient> | null = null;
 
 export function getSupabase() {
   if (!_supabase) {
-    if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error("Missing Supabase environment variables");
-    }
     _supabase = createClient(supabaseUrl, supabaseAnonKey);
   }
   return _supabase;
