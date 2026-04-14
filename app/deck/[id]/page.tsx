@@ -307,6 +307,7 @@ export default function DeckPage() {
   const selectCls = "rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:border-primary focus:outline-none";
 
   return (
+    <div className="mx-auto w-full max-w-6xl px-6 py-8">
     <motion.div
       className="flex flex-col gap-8"
       initial={{ opacity: 0, y: 16 }}
@@ -683,5 +684,6 @@ export default function DeckPage() {
         </div>
       )}
     </motion.div>
+    </div>
   );
 }

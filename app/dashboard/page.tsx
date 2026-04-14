@@ -222,6 +222,7 @@ export default function DashboardPage() {
   const showContinue = !!continueStudying && !search && filter === "all";
 
   return (
+    <div className="mx-auto w-full max-w-6xl px-6 py-8">
     <motion.div
       className="flex flex-col gap-8"
       initial={{ opacity: 0, y: 20 }}
@@ -453,5 +454,6 @@ export default function DashboardPage() {
         )}
       </div>
     </motion.div>
+    </div>
   );
 }

@@ -1,14 +1,28 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Instrument_Serif, DM_Sans, Bricolage_Grotesque } from "next/font/google";
 import { Toaster } from "sonner";
 import Navbar from "@/components/layout/Navbar";
 import Providers from "@/components/layout/Providers";
 import ErrorBoundary from "@/components/layout/ErrorBoundary";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
   subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
+});
+
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
+  subsets: ["latin"],
+  weight: ["300", "400", "500"],
+});
+
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -23,20 +37,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
-      <body className="flex min-h-full flex-col font-sans bg-background dark:bg-dark-bg text-text-primary dark:text-dark-text">
+    <html lang="en" className={`${instrumentSerif.variable} ${dmSans.variable} ${bricolage.variable} h-full antialiased`} suppressHydrationWarning>
+      <body className="flex min-h-full flex-col bg-[#faf9f7] text-[#1a1814]" style={{ fontFamily: "var(--font-dm-sans), sans-serif" }}>
         <Providers>
           <Navbar />
-          <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
+          <main className="w-full flex-1">
             <ErrorBoundary>{children}</ErrorBoundary>
           </main>
-          <Toaster
-            position="bottom-right"
-            richColors
-            toastOptions={{
-              className: "dark:bg-dark-card dark:text-dark-text dark:border-dark-border",
-            }}
-          />
+          <Toaster position="bottom-right" richColors />
         </Providers>
       </body>
     </html>
