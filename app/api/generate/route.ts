@@ -52,8 +52,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate flashcards with Gemini
-    const generated = await generateFlashcards(text);
+    // Generate flashcards with Groq
+    let generated: Awaited<ReturnType<typeof generateFlashcards>>;
+    try {
+      generated = await generateFlashcards(text);
+    } catch (err: any) {
+      console.error("GROQ ERROR FULL:", JSON.stringify(err, null, 2));
+      console.error("GROQ ERROR STATUS:", err?.status);
+      console.error("GROQ ERROR MESSAGE:", err?.message);
+      return NextResponse.json(
+        { error: `Groq failed: ${err?.message ?? JSON.stringify(err)}` },
+        { status: 500 }
+      );
+    }
 
     if (!generated.cards?.length) {
       return NextResponse.json(
