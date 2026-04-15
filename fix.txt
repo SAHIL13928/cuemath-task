@@ -1,0 +1,90 @@
+Fix "Rendered more hooks than during the previous render" error in DeckPage.
+
+The error is in useCountUp hook being called conditionally.
+File: app/deck/[id]/page.tsx (or wherever DeckPage component lives)
+
+RULE: ALL hooks must be called at the top of the component, unconditionally,
+before any if/return statements.
+
+STEP 1 — Find the useCountUp calls in DeckPage. They look like:
+  const count = useCountUp(someValue)
+  
+These are being called after a conditional return or inside a condition like:
+  if (!deck) return <Loading />
+  const count = useCountUp(deck.cardCount)  ← WRONG, called after early return
+
+STEP 2 — Move ALL useCountUp calls to the very top of DeckPage,
+before any conditional returns, using fallback values:
+
+// ✅ CORRECT — all hooks at top, unconditionally
+export default function DeckPage() {
+  const [deck, setDeck] = useState(null)
+  const [cards, setCards] = useState([])
+  // ... all other useState/useEffect hooks ...
+
+  // useCountUp MUST be here at top, before any early returns
+  const totalCount = useCountUp(deck?.total ?? 0)
+  const masteredCount = useCountUp(deck?.mastered ?? 0)
+  const learningCount = useCountUp(deck?.learning ?? 0)
+  const newCount = useCountUp(deck?.new ?? 0)
+
+  // early returns AFTER all hooks
+  if (!deck) return <LoadingSpinner />
+  
+  // rest of component...
+}
+
+STEP 3 — If useCountUp itself has a conditional hook inside it,
+find components/ui/CountUp or wherever useCountUp is defined and fix it:
+
+// The hook must always call useState regardless of input:
+function useCountUp(target: number) {
+  const [count, setCount] = useState(0)  // always called, no conditions
+  
+  useEffect(() => {
+    if (target === 0) return
+    // animation logic
+  }, [target])
+  
+  return count
+}
+
+STEP 4 — Also fix the hydration mismatch from AnimatedBeam in the homepage.
+In the component using AnimatedBeam, wrap it in a client-only render:
+
+'use client'
+import { useEffect, useState } from 'react'
+
+const [mounted, setMounted] = useState(false)
+useEffect(() => setMounted(true), [])
+
+// Use a stable ID instead of random:
+// Change the AnimatedBeam id generation from Math.random() to useId()
+import { useId } from 'react'
+const id = useId() // stable across server and client renders
+
+STEP 5 — Fix the multiple GoTrueClient instances warning.
+Find all places where createClient() or createBrowserClient() is called
+outside of a component or hook (i.e. at module level):
+
+grep -r "createBrowserClient\|createClient" --include="*.ts" --include="*.tsx" lib/ components/
+
+Any file that calls createBrowserClient at the TOP LEVEL (not inside a function)
+needs to be wrapped in a singleton pattern:
+
+import { createBrowserClient } from '@supabase/ssr'
+
+let client: ReturnType<typeof createBrowserClient> | null = null
+
+export function getSupabaseBrowserClient() {
+  if (!client) {
+    client = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  }
+  return client
+}
+
+Replace all direct createBrowserClient() calls in client components
+with getSupabaseBrowserClient() from this singleton.

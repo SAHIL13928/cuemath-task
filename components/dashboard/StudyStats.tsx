@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Flame, BookOpen, Layers, Clock, CheckCircle2 } from "lucide-react";
-import { createBrowserClient } from "@/lib/supabase";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { format, subDays, startOfDay, isAfter, isSameDay } from "date-fns";
 import { StatsSkeleton } from "@/components/ui/Skeleton";
 
@@ -32,7 +32,7 @@ export default function StudyStats() {
 
   useEffect(() => {
     async function fetchStats() {
-      const supabase = createBrowserClient();
+      const supabase = getSupabaseBrowserClient();
       const {
         data: { session },
       } = await supabase.auth.getSession();

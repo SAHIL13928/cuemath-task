@@ -18,8 +18,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    import("@/lib/supabase").then(({ createBrowserClient }) => {
-      setSupabase(createBrowserClient());
+    import("@/lib/supabase/browser").then(({ getSupabaseBrowserClient }) => {
+      setSupabase(getSupabaseBrowserClient());
     });
   }, []);
 

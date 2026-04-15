@@ -36,8 +36,8 @@ export default function Navbar() {
   const [streak, setStreak] = useState<number | null>(null);
 
   useEffect(() => {
-    import("@/lib/supabase").then(({ createBrowserClient }) => {
-      const client = createBrowserClient();
+    import("@/lib/supabase/browser").then(({ getSupabaseBrowserClient }) => {
+      const client = getSupabaseBrowserClient();
       setSupabase(client);
       client.auth.getSession().then(async ({ data: { session } }) => {
         setUser(session?.user ?? null);

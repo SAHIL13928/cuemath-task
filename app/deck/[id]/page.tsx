@@ -199,6 +199,19 @@ export default function DeckPage() {
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [params.id]);
 
+  const today = new Date().toISOString().split("T")[0];
+  const dueCount = cards.filter((c) => !c.next_review_date || c.next_review_date <= today).length;
+  const masteredCount = cards.filter((c) => c.repetitions >= 2).length;
+  const learningCount = cards.filter((c) => c.repetitions >= 1 && c.repetitions < 2).length;
+  const newCount = cards.filter((c) => c.repetitions === 0).length;
+  const mastery = cards.length > 0 ? Math.round((masteredCount / cards.length) * 100) : 0;
+
+  // Animated count-up for stat numbers
+  const animTotal    = useCountUp(cards.length);
+  const animMastered = useCountUp(masteredCount);
+  const animLearning = useCountUp(learningCount);
+  const animNew      = useCountUp(newCount);
+
   if (loading) {
     return (
       <motion.div className="flex flex-col gap-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -225,19 +238,6 @@ export default function DeckPage() {
       </div>
     );
   }
-
-  const today = new Date().toISOString().split("T")[0];
-  const dueCount = cards.filter((c) => !c.next_review_date || c.next_review_date <= today).length;
-  const masteredCount = cards.filter((c) => c.repetitions >= 2).length;
-  const learningCount = cards.filter((c) => c.repetitions >= 1 && c.repetitions < 2).length;
-  const newCount = cards.filter((c) => c.repetitions === 0).length;
-  const mastery = cards.length > 0 ? Math.round((masteredCount / cards.length) * 100) : 0;
-
-  // Animated count-up for stat numbers
-  const animTotal    = useCountUp(cards.length);
-  const animMastered = useCountUp(masteredCount);
-  const animLearning = useCountUp(learningCount);
-  const animNew      = useCountUp(newCount);
 
   // Type distribution — count per card_type, sorted by frequency
   const typeCounts = cards.reduce<Record<string, number>>((acc, c) => {

@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
-import { createBrowserClient } from "@/lib/supabase";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import UploadZone from "@/components/dashboard/UploadZone";
 import StudyStats from "@/components/dashboard/StudyStats";
 import DeckCard from "@/components/deck/DeckCard";
@@ -160,7 +160,7 @@ export default function DashboardPage() {
     fetchDecks();
 
     async function init() {
-      const supabase = createBrowserClient();
+      const supabase = getSupabaseBrowserClient();
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
 
