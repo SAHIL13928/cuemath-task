@@ -1,125 +1,84 @@
-Create a comprehensive README.md in the project root with the following content:
 
-# FlashGenius 🧠
+# FlashGenius
 
-AI-powered flashcard app that turns any PDF into a smart study deck. Built to solve the core problem with traditional flashcard apps — passive learning. FlashGenius forces active recall, grades your answers semantically, and provides a personal AI tutor for every card.
+AI-powered flashcard app that turns any PDF into a smart study deck. Built as part of the Cuemath hiring assignment.
 
-Live demo: [your-vercel-url]
+https://cuemath-task-kohl.vercel.app/
 
 ---
 
-## Features
+## What I Built
 
-### 📄 PDF to Smart Deck (90 seconds)
-Upload any PDF — lecture notes, textbooks, research papers. The AI does a two-pass extraction:
-- First pass identifies core concepts, relationships, definitions, and edge cases
-- Second pass generates cards with real variety — not just shallow bullet points
-- Cards are tagged by type (concept, definition, application, comparison, edge case) and difficulty (easy, medium, hard)
+Most flashcard apps are passive — you flip a card, read the answer, and fool yourself into thinking you learned it. FlashGenius fixes that by forcing active recall and grading answers semantically using AI.
 
-### 🧠 Active Recall Mode
-The single biggest leap from flashcard toy to real learning tool.
-- Instead of passively flipping cards, you type your answer from memory
-- AI grades semantically — not keyword matching. Writing "a² + b² = c²" scores correctly for "What is the Pythagorean theorem?" even if worded differently
-- Get a score (0-100), grade (Excellent/Good/Partial/Needs Work), and specific feedback on what you missed
-- Session summary at the end shows grade distribution and flags weak cards (score < 60) for focused review
+Core features:
+- Upload any PDF and get a smart deck in ~90 seconds
+- Active Recall mode: type your answer, AI grades it semantically with partial credit and feedback
+- Flip Card mode with Easy / Medium / Hard spaced repetition ratings
+- AI Tutor on every card — ask it to explain differently, give an example, or break it down
+- Mastery tracking, weak card detection, streak counter, deck search and filtering
 
-### 🃏 Flip Card Mode
-Classic spaced repetition with Easy / Medium / Hard rating buttons. Your ratings feed into mastery tracking per card.
+---
 
-### 💬 AI Tutor Per Card
-Every card has an "Ask Tutor" button. The tutor has full context — the card, the deck, and your study history.
-- "Explain this differently" — gets a new analogy
-- "Give me an example" — gets a concrete real-world example  
-- "Why is this true?" — gets the underlying reasoning
-- "Break it down step by step" — gets a simplified walkthrough
+## Why I Made These Choices
 
-### 📊 Mastery Tracking
-- Per-deck mastery percentage based on card ratings
-- Cards categorized as New / Learning / Mastered
-- Weak card detection: cards with average recall score < 60 across last 3 attempts are flagged with a ⚠ badge
+**Groq over OpenAI**
+Groq's inference is significantly faster — card generation feels instant rather than making the user wait 10-15 seconds. For a study app where you're generating decks frequently, speed matters for UX.
 
-### 🔥 Streak Tracking
-- Tracks consecutive days studied
-- Streak counter visible in navbar
-- Toast notification when you maintain or break a streak
+**Two-pass generation**
+Most apps do a single prompt: "generate flashcards from this text." That gives you shallow cards. I split it into two calls — first extract a structured concept outline (core concepts, relationships, edge cases), then generate cards from the outline. The result is cards that cover material the way a teacher would design them, not the way a bot scrapes them.
 
-### 🗂 Deck Management
-- Search decks by title, description, or source filename
-- Filter by status: All / In Progress / Mastered / New / Needs Review
-- Sort by: Last Opened / Recently Created / Alphabetical / Mastery
-- "Continue Studying" banner shows your most recently opened deck
+**Semantic grading over exact match**
+The hardest part was the grading. Exact match is useless for learning — "H2O" and "two hydrogen atoms bonded to one oxygen" are the same answer. I prompt the model with a rubric that explicitly instructs it to grade on understanding, not wording, and to give partial credit with specific feedback on what was missing.
+
+**Supabase over a custom backend**
+RLS policies handle authorization at the database level, which means I don't have to write auth middleware for every API route. It also gives me real-time capabilities for free if I ever want to add collaborative study features.
+
+**Next.js App Router**
+Server components let me fetch deck data without a loading state on the initial render, which makes the dashboard feel faster. API routes live in the same repo which simplifies deployment.
+
+---
+
+## What I'd Improve With More Time
+
+**Smarter spaced repetition**
+Right now mastery is simple — Easy/Medium/Hard ratings update a level. A proper SM-2 or FSRS algorithm would schedule each card at the optimal review interval, which is what Anki does and why it works so well for long-term retention.
+
+**PDF quality improvements**
+The two-pass generation is good but not perfect. With more time I'd add a third validation pass that checks cards against the source material and removes duplicates or cards that test trivial details. I'd also handle scanned PDFs with OCR.
+
+**Student performance analytics**
+The data is all there in Supabase — recall scores, ratings, timestamps — but I haven't built the analytics view yet. A heatmap of study activity, a graph of mastery over time, and per-concept weak point identification would make this genuinely useful for exam prep.
+
+**Collaborative decks**
+Let students share decks with a link, fork someone else's deck, or study together. The architecture already supports it — it just needs a sharing permission layer on top of the existing RLS policies.
+
+**Mobile app**
+Flashcard studying happens on the go. The web app is responsive but a native app with offline support and push notification reminders would dramatically improve daily retention habits.
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 14 (App Router) |
-| Database | Supabase (PostgreSQL) |
-| Auth | Supabase Auth |
-| AI / LLM | Groq (llama-3.3-70b-versatile) |
-| Styling | Tailwind CSS |
-| Animations | Framer Motion |
-| UI Components | shadcn/ui + 21st.dev |
-| Deployment | Vercel |
+Next.js 14 (App Router), Supabase (Postgres + Auth), Groq (llama-3.3-70b-versatile), Tailwind CSS, Framer Motion, Vercel
 
 ---
 
 ## Getting Started
 
-### Prerequisites
-- Node.js 18+
-- A Supabase account (free tier works)
-- A Groq API key (free tier works for development)
+1. Clone and install
+   git clone https://github.com/yourusername/flashcard-engine.git
+   cd flashcard-engine
+   npm install
 
-### Installation
+2. Copy .env.example to .env.local and fill in your keys
 
-1. Clone the repo
-git clone https://github.com/yourusername/flashcard-engine.git
-cd flashcard-engine
-
-2. Install dependencies
-npm install
-
-3. Copy the environment variables file
-cp .env.example .env.local
-
-4. Fill in your environment variables in .env.local (see Environment Variables section below)
-
-5. Set up the database (run these in Supabase SQL Editor)
--- Cards table columns
-ALTER TABLE cards ADD COLUMN IF NOT EXISTS concept_tag text;
-ALTER TABLE cards ADD COLUMN IF NOT EXISTS mastery_level integer DEFAULT 0;
-ALTER TABLE cards ADD COLUMN IF NOT EXISTS last_reviewed_at timestamptz;
-
--- Active recall attempts table
-CREATE TABLE IF NOT EXISTS active_recall_attempts (
-  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
-  card_id uuid REFERENCES cards(id) ON DELETE CASCADE,
-  deck_id uuid REFERENCES decks(id) ON DELETE CASCADE,
-  user_answer text,
-  score integer,
-  grade text,
-  created_at timestamptz DEFAULT now()
-);
-
-6. Run the development server
-npm run dev
-
-Open http://localhost:3000
+3. Run
+   npm run dev
 
 ---
 
 ## Environment Variables
-
-Create a .env.local file in the root with:
-
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-GROQ_API_KEY=your_groq_api_key
 
 | Variable | Where to get it |
 |---|---|
@@ -127,67 +86,6 @@ GROQ_API_KEY=your_groq_api_key
 | NEXT_PUBLIC_SUPABASE_ANON_KEY | Supabase Dashboard → Project Settings → API |
 | SUPABASE_SERVICE_ROLE_KEY | Supabase Dashboard → Project Settings → API |
 | GROQ_API_KEY | console.groq.com → API Keys |
-
----
-
-## How It Works
-
-1. User uploads a PDF
-2. Server extracts text from the PDF
-3. First Groq call analyzes the content and extracts a structured concept outline
-4. Second Groq call generates typed, difficulty-tagged flashcards from the outline
-5. Cards are saved to Supabase and linked to the user's account
-6. User studies via flip mode or active recall mode
-7. Ratings and recall scores update mastery levels per card
-8. AI tutor is available on any card with full deck context
-
----
-
-## Project Structure
-
-flashcard-engine/
-├── app/
-│   ├── api/                  # API routes
-│   │   ├── generate/         # PDF → flashcard generation
-│   │   ├── grade-answer/     # Active recall AI grading
-│   │   ├── tutor-chat/       # AI tutor per card
-│   │   ├── decks/            # Deck CRUD
-│   │   └── cards/            # Card CRUD
-│   ├── dashboard/            # Deck management page
-│   ├── deck/[id]/            # Deck view + practice mode
-│   └── page.tsx              # Landing page
-├── components/
-│   ├── cards/                # FlashCard, ActiveRecallCard
-│   ├── deck/                 # DeckCard, DeckStats, DeckProgress
-│   ├── practice/             # PracticeMode, RatingButtons
-│   ├── tutor/                # TutorChat, TutorMessage
-│   ├── dashboard/            # SearchBar, FilterBar, ContinueBanner
-│   ├── ui/                   # Reusable UI primitives
-│   └── layout/               # Navbar, PageWrapper
-├── lib/
-│   └── supabase/             # Supabase client helpers
-└── .env.example
-
----
-
-## Deployment
-
-The app is deployed on Vercel. To deploy your own:
-
-1. Push to GitHub
-2. Import the repo in Vercel
-3. Add all environment variables in Vercel Dashboard → Settings → Environment Variables
-4. Deploy
-
-Make sure GROQ_API_KEY is set for all environments (Production, Preview, Development).
-
----
-
-## Known Limitations
-
-- PDF generation uses Groq free tier which has token rate limits — large PDFs may need a retry
-- Active recall grading works best in English
-- Maximum ~15 cards generated per PDF to stay within token limits
 
 ---
 
