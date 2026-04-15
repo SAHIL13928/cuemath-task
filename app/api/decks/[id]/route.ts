@@ -10,10 +10,10 @@ export async function DELETE(
   const cookieStore = await cookies();
   const supabase: any = createServerComponentClient(cookieStore);
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session?.user) {
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -22,7 +22,7 @@ export async function DELETE(
     .from("decks")
     .select("id")
     .eq("id", id)
-    .eq("user_id", session.user.id)
+    .eq("user_id", user.id)
     .single();
 
   if (findError || !deck) {

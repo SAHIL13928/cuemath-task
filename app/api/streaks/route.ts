@@ -5,16 +5,16 @@ import { createServerComponentClient } from "@/lib/supabase";
 export async function GET() {
   const cookieStore = await cookies();
   const supabase: any = createServerComponentClient(cookieStore);
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session?.user) {
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("streak_count, last_study_date")
-    .eq("id", session.user.id)
+    .eq("id", user.id)
     .single();
 
   const today = new Date().toISOString().split("T")[0];
@@ -40,9 +40,9 @@ export async function GET() {
 export async function POST() {
   const cookieStore = await cookies();
   const supabase: any = createServerComponentClient(cookieStore);
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session?.user) {
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -51,7 +51,7 @@ export async function POST() {
   const { data: profile } = await supabase
     .from("profiles")
     .select("streak_count, last_study_date")
-    .eq("id", session.user.id)
+    .eq("id", user.id)
     .single();
 
   if (!profile) {
@@ -79,7 +79,7 @@ export async function POST() {
   await supabase
     .from("profiles")
     .update({ streak_count: newStreak, last_study_date: today })
-    .eq("id", session.user.id);
+    .eq("id", user.id);
 
   return NextResponse.json({ streak: newStreak, isNew: !lastStudy || lastStudy < yesterdayStr });
 }

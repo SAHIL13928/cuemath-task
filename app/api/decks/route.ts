@@ -6,14 +6,14 @@ export async function GET() {
   const cookieStore = await cookies();
   const supabase: any = createServerComponentClient(cookieStore);
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session?.user) {
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const userId = session.user.id;
+  const userId = user.id;
   const today = new Date().toISOString().split("T")[0];
 
   // Fetch decks
@@ -68,10 +68,10 @@ export async function POST(request: NextRequest) {
   const cookieStore = await cookies();
   const supabase: any = createServerComponentClient(cookieStore);
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session?.user) {
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
 
   const { data: deck, error: deckError } = await supabase
     .from("decks")
-    .insert({ title, card_count: cards.length, user_id: session.user.id })
+    .insert({ title, card_count: cards.length, user_id: user.id })
     .select()
     .single();
 

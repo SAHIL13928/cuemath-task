@@ -7,10 +7,10 @@ export async function GET(request: NextRequest) {
     const cookieStore = await cookies();
     const supabase: any = createServerComponentClient(cookieStore);
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       .from("active_recall_attempts")
       .select("card_id, score, created_at")
       .eq("deck_id", deckId)
-      .eq("user_id", session.user.id)
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
     if (error) {

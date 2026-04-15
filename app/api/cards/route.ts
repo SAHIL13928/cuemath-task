@@ -13,10 +13,10 @@ export async function GET(request: NextRequest) {
   const cookieStore = await cookies();
   const supabase: any = createServerComponentClient(cookieStore);
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session?.user) {
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     .from("decks")
     .select("id")
     .eq("id", deckId)
-    .eq("user_id", session.user.id)
+    .eq("user_id", user.id)
     .single();
 
   if (deckError || !deck) {
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       "*, review_history!left(ease_factor, interval, repetitions, next_review_date, last_reviewed_at, last_rating)"
     )
     .eq("deck_id", deckId)
-    .eq("review_history.user_id", session.user.id)
+    .eq("review_history.user_id", user.id)
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -87,10 +87,10 @@ export async function POST(request: NextRequest) {
   const cookieStore = await cookies();
   const supabase: any = createServerComponentClient(cookieStore);
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session?.user) {
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
     .from("decks")
     .select("id, card_count")
     .eq("id", deck_id)
-    .eq("user_id", session.user.id)
+    .eq("user_id", user.id)
     .single();
 
   if (deckError || !deck) {
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
   // Create initial review_history row
   await supabase.from("review_history").insert({
     card_id: card.id,
-    user_id: session.user.id,
+    user_id: user.id,
     ease_factor: 2.5,
     interval: 0,
     repetitions: 0,

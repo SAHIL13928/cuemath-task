@@ -6,9 +6,9 @@ async function getAuthenticatedSupabase() {
   const cookieStore = await cookies();
   const supabase: any = createServerComponentClient(cookieStore);
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  return { supabase, session };
+    data: { user },
+  } = await supabase.auth.getUser();
+  return { supabase, user };
 }
 
 async function verifyCardOwnership(supabase: any, cardId: string, userId: string) {
@@ -29,13 +29,13 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const { supabase, session } = await getAuthenticatedSupabase();
+  const { supabase, user } = await getAuthenticatedSupabase();
 
-  if (!session?.user) {
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const card = await verifyCardOwnership(supabase, id, session.user.id);
+  const card = await verifyCardOwnership(supabase, id, user.id);
   if (!card) {
     return NextResponse.json({ error: "Card not found" }, { status: 404 });
   }
@@ -70,13 +70,13 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const { supabase, session } = await getAuthenticatedSupabase();
+  const { supabase, user } = await getAuthenticatedSupabase();
 
-  if (!session?.user) {
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const card = await verifyCardOwnership(supabase, id, session.user.id);
+  const card = await verifyCardOwnership(supabase, id, user.id);
   if (!card) {
     return NextResponse.json({ error: "Card not found" }, { status: 404 });
   }

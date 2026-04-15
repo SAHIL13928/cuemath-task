@@ -10,14 +10,14 @@ export async function POST(request: NextRequest) {
     const cookieStore = await cookies();
     const supabase: any = createServerComponentClient(cookieStore);
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = session.user.id;
+    const userId = user.id;
 
     // Parse file from form data
     const formData = await request.formData();
