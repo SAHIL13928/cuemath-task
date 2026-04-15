@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, LogOut, Menu, X } from "lucide-react";
 import { toast } from "sonner";
-import type { User, SupabaseClient } from "@supabase/supabase-js";
+import type { User, SupabaseClient, AuthChangeEvent, Session } from "@supabase/supabase-js";
 
 /* ── Logo mark (small black rounded square) ── */
 function LogoMark() {
@@ -39,9 +39,9 @@ export default function Navbar() {
     import("@/lib/supabase/browser").then(({ getSupabaseBrowserClient }) => {
       const client = getSupabaseBrowserClient();
       setSupabase(client);
-      client.auth.getSession().then(async ({ data: { session } }) => {
-        setUser(session?.user ?? null);
-        if (session?.user) {
+      client.auth.getUser().then(async ({ data: { user } }: { data: { user: User | null } }) => {
+        setUser(user ?? null);
+        if (user) {
           try {
             const res = await fetch("/api/streaks");
             if (res.ok) {
@@ -51,7 +51,7 @@ export default function Navbar() {
           } catch {}
         }
       });
-      const { data: { subscription } } = client.auth.onAuthStateChange((_event, session) => {
+      const { data: { subscription } } = client.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
         setUser(session?.user ?? null);
         if (!session?.user) setStreak(null);
       });
